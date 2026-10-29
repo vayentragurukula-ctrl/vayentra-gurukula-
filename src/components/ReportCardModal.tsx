@@ -18,7 +18,7 @@ interface ReportCardModalProps {
 }
 
 export const ReportCardModal: React.FC<ReportCardModalProps> = ({ isOpen, onClose }) => {
-  const { activeChild, parent, language } = useApp();
+  const { activeChild, parent } = useApp();
   const [whatsappSent, setWhatsappSent] = useState(false);
 
   if (!isOpen) return null;
@@ -177,15 +177,7 @@ export const ReportCardModal: React.FC<ReportCardModalProps> = ({ isOpen, onClos
                     Excellent cellular understanding of photosynthesis and stomatal biology. — <em>Acharya Chinmayee Hegde</em>
                   </td>
                 </tr>
-                <tr>
-                  <td style={{ padding: '8px 10px', border: '1px solid #cbd5e1' }}><strong>Kannada (ದ್ವಿತೀಯ ಭಾಷೆ)</strong></td>
-                  <td style={{ padding: '8px 10px', border: '1px solid #cbd5e1', color: 'var(--color-teal-primary)', fontWeight: 700 }}>88%</td>
-                  <td style={{ padding: '8px 10px', border: '1px solid #cbd5e1' }}>90%</td>
-                  <td style={{ padding: '8px 10px', border: '1px solid #cbd5e1', fontWeight: 700 }}>A2</td>
-                  <td style={{ padding: '8px 10px', border: '1px solid #cbd5e1', fontSize: '12px' }}>
-                    ಉತ್ತಮ ಸಾಹಿತ್ಯ ಆಸಕ್ತಿ ಮತ್ತು ಶುದ್ಧ ಉಚ್ಚಾರಣೆ. ಕವನ ವಾಚನದಲ್ಲಿ ಪ್ರಶಂಸನೀಯ ಪ್ರಗತಿ. — <em>Vidushi Ananya Kulkarni</em>
-                  </td>
-                </tr>
+                
                 <tr>
                   <td style={{ padding: '8px 10px', border: '1px solid #cbd5e1' }}><strong>English Literature</strong></td>
                   <td style={{ padding: '8px 10px', border: '1px solid #cbd5e1', color: 'var(--color-teal-primary)', fontWeight: 700 }}>90%</td>
