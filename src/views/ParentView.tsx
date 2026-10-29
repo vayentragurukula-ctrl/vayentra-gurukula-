@@ -22,8 +22,7 @@ export const ParentView: React.FC = () => {
     setActiveChildId,
     grantParentConsent,
     payOutstandingFee,
-    updateScreenTime,
-    language
+    updateScreenTime
   } = useApp();
 
   const attendance = getStudentAttendanceSummary(readDemoAttendance(), activeChild.id);
@@ -338,7 +337,7 @@ export const ParentView: React.FC = () => {
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <div>
               <div className="h2">Official Progress Report Card</div>
-              <div className="t-muted">Available in English & Kannada • Formatted for A4 Print (FR-RPT-01)</div>
+              <div className="t-muted">English-language report • A4 print layout</div>
             </div>
             <div style={{ display: 'flex', gap: '10px' }}>
               <button type="button" className="btn btn-teal" onClick={() => { setReportDownloaded(true); alert('Report Card downloaded as PDF.'); }}>
