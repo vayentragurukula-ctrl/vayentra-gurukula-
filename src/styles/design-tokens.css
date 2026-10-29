@@ -173,8 +173,4 @@
   --color-paper-card: #000000 !important;
 }
 
-/* Kannada Typography Override */
-[lang="kn"] {
-  font-family: var(--font-family-kannada);
-  line-height: var(--line-height-kannada);
-}
+
