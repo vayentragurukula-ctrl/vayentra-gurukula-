@@ -34,12 +34,10 @@ export const StudentView: React.FC = () => {
     addMistake,
     doubts,
     askDoubt,
-    isOfflineMode,
-    language
+    isOfflineMode
   } = useApp();
 
   const isPrimary = activeChild.grade <= 4;
-  const isKannada = language === 'Kannada' || activeChild.medium === 'Kannada';
 
   // Navigation tab within student hub
   const [activeTab, setActiveTab] = useState<'learn' | 'practice' | 'mistakes' | 'doubts' | 'map'>('learn');
@@ -146,10 +144,10 @@ export const StudentView: React.FC = () => {
           <div style={{ fontSize: isPrimary ? '42px' : '32px' }}>{activeChild.avatar}</div>
           <div>
             <div className="h1" style={{ fontSize: isPrimary ? '26px' : '22px' }}>
-              {isKannada ? `ನಮಸ್ಕಾರ, ${activeChild.name}!` : `Hi, ${activeChild.name}!`}
+              {`Hi, ${activeChild.name}!`}
             </div>
             <div className="t-muted">
-              Class {activeChild.grade} • {activeChild.board} • {activeChild.medium} Medium
+              Class {activeChild.grade} • {activeChild.board}
             </div>
           </div>
         </div>
@@ -175,28 +173,28 @@ export const StudentView: React.FC = () => {
           className={activeTab === 'learn' ? 'btn btn-teal' : 'ghost'}
           onClick={() => { setActiveTab('learn'); setInQuizMode(false); }}
         >
-          <BookOpen size={16} /> {isKannada ? 'ಪಾಠ ಕಲಿಯಿರಿ' : 'Continue Learning'}
+          <BookOpen size={16} /> Continue Learning
         </button>
         <button
           type="button"
           className={activeTab === 'mistakes' ? 'btn btn-teal' : 'ghost'}
           onClick={() => setActiveTab('mistakes')}
         >
-          <RotateCcw size={16} /> {isKannada ? 'ತಪ್ಪುಗಳ ನೋಟ್‌ಬುಕ್' : 'Mistake Notebook'} ({mistakes.filter(m => !m.isResolved).length})
+          <RotateCcw size={16} /> Mistake Notebook ({mistakes.filter(m => !m.isResolved).length})
         </button>
         <button
           type="button"
           className={activeTab === 'doubts' ? 'btn btn-teal' : 'ghost'}
           onClick={() => setActiveTab('doubts')}
         >
-          <HelpCircle size={16} /> {isKannada ? 'ಸಂಶಯ ಪರಿಹಾರ' : 'Ask AI Tutor'}
+          <HelpCircle size={16} /> Ask AI Tutor
         </button>
         <button
           type="button"
           className={activeTab === 'map' ? 'btn btn-teal' : 'ghost'}
           onClick={() => setActiveTab('map')}
         >
-          <Sparkles size={16} /> {isKannada ? 'ಪರಿಕಲ್ಪನೆ ನಕ್ಷೆ' : 'Concept Map'}
+          <Sparkles size={16} /> Concept Map
         </button>
       </div>
 
@@ -208,10 +206,10 @@ export const StudentView: React.FC = () => {
           <div className="b" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
             <div>
               <div className="t-tiny" style={{ fontWeight: 600, color: 'var(--color-teal-primary)' }}>
-                {isKannada ? currentChapter.subjectKn : currentChapter.subject} • Chapter 1
+                {currentChapter.subject} • Chapter 1
               </div>
               <div className="h2" style={{ marginTop: '2px' }}>
-                {isKannada ? currentChapter.titleKn : currentChapter.title}
+                {currentChapter.title}
               </div>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -254,7 +252,7 @@ export const StudentView: React.FC = () => {
                     )}
                   </div>
                   <div className="h3" style={{ fontSize: '15px' }}>
-                    {isKannada ? (ep.titleKn || ep.title) : ep.title}
+                    {ep.title}
                   </div>
                   <div className="t-tiny" style={{ marginTop: '4px' }}>
                     ⏱ {ep.durationMinutes} mins • Interactive Checkpoint
@@ -528,9 +526,9 @@ export const StudentView: React.FC = () => {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           <div className="b" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <div>
-              <div className="h2">{isKannada ? 'ನನ್ನ ತಪ್ಪುಗಳ ನೋಟ್‌ಬುಕ್' : 'My Mistake Notebook'}</div>
+              <div className="h2">My Mistake Notebook</div>
               <div className="t-muted">
-                {isKannada ? 'ತಪ್ಪುಗಳನ್ನು ಸರಿಪಡಿಸಿ ಪೂರ್ಣಾಂಕಗಳ ಮಾಸ್ಟರ್ ಆಗಿ' : 'Review and correct misconceptions. Questions marked here reappear in spaced repetition.'}
+                Review and correct misconceptions. Questions marked here reappear in spaced repetition.
               </div>
             </div>
             <span className="chip chip-saffron">
@@ -590,9 +588,9 @@ export const StudentView: React.FC = () => {
       {activeTab === 'doubts' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           <div className="b">
-            <div className="h2">{isKannada ? 'ಗುರುಕುಲ AI ಸಂಶಯ ಪರಿಹಾರಕ' : 'AI Doubt Tutor'}</div>
+            <div className="h2">AI Doubt Tutor</div>
             <div className="t-muted">
-              {isKannada ? 'ಪಠ್ಯಕ್ರಮ ಆಧಾರಿತ ಸಂಶಯಗಳನ್ನು ಯಾವುದೇ ಸಮಯದಲ್ಲಿ ಕೇಳಿ' : 'Ask questions about your chapter. Answers are grounded in certified syllabus notes only.'}
+              Ask questions about your chapter. Answers are grounded in certified syllabus notes only.
             </div>
           </div>
 
@@ -600,7 +598,7 @@ export const StudentView: React.FC = () => {
           <form onSubmit={handleSendDoubt} className="b" style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
             <textarea
               rows={3}
-              placeholder={isKannada ? "ನಿಮ್ಮ ಪ್ರಶ್ನೆಯನ್ನು ಇಲ್ಲಿ ಬರೆಯಿರಿ..." : "Ask your doubt (e.g., Why does -5 × -2 equal +10?)..."}
+              placeholder="Ask your doubt (e.g., Why does -5 × -2 equal +10?)..."
               value={doubtText}
               onChange={(e) => setDoubtText(e.target.value)}
               style={{ resize: 'none' }}
@@ -650,7 +648,7 @@ export const StudentView: React.FC = () => {
       {activeTab === 'map' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           <div className="b">
-            <div className="h2">{isKannada ? 'ಪರಿಕಲ್ಪನೆ ನಕ್ಷೆ' : 'Concept Prerequisite Map'}</div>
+            <div className="h2">Concept Prerequisite Map</div>
             <div className="t-muted">
               Visualizes prerequisite dependencies and your mastery journey from Class 6 foundations to Class 8 advanced topics.
             </div>
