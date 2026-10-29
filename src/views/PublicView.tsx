@@ -122,10 +122,10 @@ export const PublicView: React.FC = () => {
             </button>
           </div>
           <div className="b">
-            <div className="h3">📚 Kannada / English</div>
-            <div className="t-muted" style={{ marginTop: '4px' }}>Bilingual Karnataka Context Stories</div>
-            <button type="button" className="ghost" style={{ minHeight: '34px', fontSize: '12px', marginTop: '10px' }}>
-              Listen to Audio Preview
+            <div className="h3">📚 English & Communication</div>
+            <div className="t-muted" style={{ marginTop: '4px' }}>Reading, writing and confident communication</div>
+            <button type="button" className="ghost" style={{ minHeight: '34px', fontSize: '12px', marginTop: '10px' }} onClick={() => setRole('student')}>
+              Explore Learning Activities
             </button>
           </div>
         </div>
