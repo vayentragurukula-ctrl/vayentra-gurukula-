@@ -11,8 +11,6 @@ interface AppContextType {
   isChildModeLocked: boolean;
   unlockChildModeWithPin: (pin: string) => boolean;
   lockIntoChildMode: () => void;
-  language: 'English' | 'Kannada';
-  setLanguage: (lang: 'English' | 'Kannada') => void;
   theme: 'light' | 'dark';
   toggleTheme: () => void;
   isDyslexicFont: boolean;
@@ -68,7 +66,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   });
 
   const [isChildModeLocked, setIsChildModeLocked] = useState<boolean>(false);
-  const [language, setLanguage] = useState<'English' | 'Kannada'>('English');
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
   const [isDyslexicFont, setIsDyslexicFont] = useState<boolean>(false);
   const [isLargeText, setIsLargeText] = useState<boolean>(false);
@@ -113,9 +110,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     document.documentElement.setAttribute('data-contrast', isHighContrast ? 'high' : 'normal');
   }, [isHighContrast]);
 
-  useEffect(() => {
-    document.documentElement.setAttribute('lang', language === 'Kannada' ? 'kn' : 'en');
-  }, [language]);
 
   const activeChild = parent.children.find(c => c.id === parent.activeChildId) || parent.children[0];
 
@@ -307,8 +301,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         isChildModeLocked,
         unlockChildModeWithPin,
         lockIntoChildMode,
-        language,
-        setLanguage,
         theme,
         toggleTheme,
         isDyslexicFont,
