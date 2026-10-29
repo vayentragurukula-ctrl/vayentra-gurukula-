@@ -136,16 +136,16 @@ export const App: React.FC = () => {
 
             {/* Bottom Quick Context Card */}
             <div style={{ marginTop: 'auto', padding: '14px', borderRadius: '8px', background: 'var(--color-paper-subtle)', border: '1px solid var(--color-border-subtle)' }}>
-              <div className="t-tiny" style={{ fontWeight: 700 }}>VAYENTRA PILOT R1</div>
+              <div className="t-tiny" style={{ fontWeight: 700 }}>VAYENTRA GURUKULA</div>
               <div className="t-tiny" style={{ marginTop: '2px' }}>
-                All 100 Developer Design Diagrams & 83 Wireframes Implemented.
+                Learning, attendance and academic progress.
               </div>
             </div>
           </aside>
         )}
 
         {/* Central Main Learning Canvas */}
-        <main style={{ flex: 1, padding: '24px 20px', maxWidth: '1280px', margin: '0 auto', width: '100%' }}>
+        <main className="app-canvas">
           {renderActiveView()}
         </main>
       </div>
