@@ -1,4 +1,4 @@
-import React,{useEffect,useId,useMemo,useState} from 'react';
+import React,{useEffect,useMemo,useState} from 'react';
 import {Eye,MousePointerClick,RotateCcw,Sparkles} from 'lucide-react';
 import '../styles/one-grade1-shapes.css';
 
@@ -133,11 +133,12 @@ const movement=(value:string,kind:string)=>{
 };
 export const OneGrade1ShapeLab:React.FC<Props>=({lab,title})=>{
  const [selected,setSelected]=useState(lab.choices[0]||'circle');
+ const [motionRun,setMotionRun]=useState(0);
  const [explored,setExplored]=useState<string[]>([]);
  const key=lab.kind+'|'+lab.choices.join('|');
- useEffect(()=>{setSelected(lab.choices[0]||'circle');setExplored([]);},[key]);
+ useEffect(()=>{setSelected(lab.choices[0]||'circle');setExplored([]);setMotionRun(0);},[key]);
  const count=useMemo(()=>new Set(explored).size,[explored]);
- const handle=(value:string)=>{setSelected(value);setExplored(values=>values.includes(value)?values:[...values,value]);};
+ const handle=(value:string)=>{setSelected(value);setMotionRun(0);setExplored(values=>values.includes(value)?values:[...values,value]);};
  const caption=speech(selected);
  return <section className="vg1s-lab" aria-label={title+' shape explorer'}>
    <header className="vg1s-lab-top"><span><Eye size={17}/> VAYENTRA SHAPE LAB</span><small>Look · Compare · Explain</small></header>
@@ -148,19 +149,25 @@ export const OneGrade1ShapeLab:React.FC<Props>=({lab,title})=>{
      <rect width="560" height="325" rx="22" fill="#f4f9ff"/>
      <circle cx="82" cy="65" r="35" fill="#fff4cc" opacity=".75"/>
      <circle cx="482" cy="80" r="24" fill="#dbeaff" opacity=".6"/>
-     {lab.kind==='motion'&&<g><path d="M60 270L497 270" stroke="#b1c4d8" strokeWidth="8" strokeLinecap="round"/><path d="M103 241H170M102 241l18-13M102 241l18 13" stroke="#c58f4b" strokeWidth="5" fill="none" strokeLinecap="round"/><text x="65" y="314" fill="#7b93ae" fontSize="15">Gentle push →</text></g>}
-     <ExampleArt kind={lab.kind} choice={selected}/>
+     {lab.kind==='motion'&&<g><path d="M60 270L497 270" stroke="#b1c4d8" strokeWidth="8" strokeLinecap="round"/><path d="M103 241H170M170 241l-18-13M170 241l-18 13" stroke="#c58f4b" strokeWidth="5" fill="none" strokeLinecap="round"/><text x="65" y="314" fill="#7b93ae" fontSize="15">Gentle push →</text></g>}
+     <g key={selected+'-'+motionRun} className={lab.kind==='motion'&&motionRun>0?
+       'vg1s-moving-object '+(selected==='sphere'||selected==='cylinder-side'?'rolling':'sliding'):''}>
+       <ExampleArt kind={lab.kind} choice={selected}/>
+     </g>
     </svg>
     <div className="vg1s-explain" aria-live="polite">{caption}</div>
     {movement(selected,lab.kind)&&<small className="vg1s-motion-caption">{movement(selected,lab.kind)}</small>}
    </div>
+   {lab.kind==='motion'&&<button type="button" className="vg1s-play-movement" onClick={()=>setMotionRun(v=>v+1)}>
+    ▶ Watch it {selected==='sphere'||selected==='cylinder-side'?'roll':'slide'}
+   </button>}
    <div className="vg1s-select-heading"><MousePointerClick size={16}/> Touch a card to explore</div>
    <div className="vg1s-choices" role="group" aria-label="Choose a shape or view">
      {lab.choices.map(key=><button type="button" key={key} aria-pressed={selected===key}
       className={selected===key?'active':''} onClick={()=>handle(key)}>{friendly(key)}</button>)}
    </div>
    <footer className="vg1s-footer"><span>{count} of {lab.choices.length} explored this visit</span>
-    <button type="button" onClick={()=>{setSelected(lab.choices[0]||'circle');setExplored([]);}}><RotateCcw size={15}/> Start again</button></footer>
+    <button type="button" onClick={()=>{setSelected(lab.choices[0]||'circle');setExplored([]);setMotionRun(0);}}><RotateCcw size={15}/> Start again</button></footer>
    <p className="vg1s-guidance">This is a picture experiment, not a graded test. Tell a trusted adult what you notice, then try it safely with real objects.</p>
  </section>;
 };
