@@ -24,3 +24,13 @@
 @media(max-width:650px){.vg1s-lab{padding:11px;gap:13px}.vg1s-choices{grid-template-columns:repeat(2,minmax(0,1fr))}.vg1s-stage-label{font-size:10px;padding:6px 8px}.vg1s-explain{font-size:13px;padding:12px}.vg1s-choices button{font-size:12px;padding:8px;min-height:50px}}
 @media(max-width:350px){.vg1s-choices{grid-template-columns:1fr}}
 @media(prefers-reduced-motion:reduce){.vg1s-lab *{transition:none!important;animation:none!important}}
+
+.vg1s-play-movement{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;min-height:48px;border-radius:11px;border:1px solid #295a9a;background:#235393;color:white;font-family:inherit;font-size:13px;font-weight:850;cursor:pointer}
+.vg1s-play-movement:hover{background:#173e76}
+.vg1s-play-movement:focus-visible{outline:3px solid #e9b866;outline-offset:3px}
+.vg1s-moving-object{transform-box:fill-box;transform-origin:center}
+.vg1s-moving-object.rolling{animation:vg1s-roll 1.3s ease-in-out both}
+.vg1s-moving-object.sliding{animation:vg1s-slide 1.3s ease-in-out both}
+@keyframes vg1s-roll{0%{transform:translateX(-43px) rotate(-60deg)}100%{transform:translateX(48px) rotate(50deg)}}
+@keyframes vg1s-slide{0%{transform:translateX(-43px)}100%{transform:translateX(48px)}}
+@media(prefers-reduced-motion:reduce){.vg1s-moving-object.rolling,.vg1s-moving-object.sliding{animation:none!important}}
