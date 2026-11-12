@@ -117,13 +117,17 @@ function cleanUnit(row){
  const scene=db.prepare(
   'SELECT scene_json,step_text_json,teacher_prompt FROM one_foundation_picture_scenes WHERE unit_id=?'
  ).get(row.id);
+ const shapeLab=db.prepare(
+  'SELECT lab_json,step_text_json,teacher_prompt FROM one_foundation_shape_labs WHERE unit_id=?'
+ ).get(row.id);
  return {id:row.id,subject:row.subject_title,chapter:row.chapter_title,
   title:row.title,objective:row.objective,story:row.story,
   homeActivity:row.home_activity,expectedMinutes:row.expected_minutes,
   curriculumKind:row.curriculum_kind,
   pictureScene:scene?JSON.parse(scene.scene_json):null,
-  guidedSteps:scene?JSON.parse(scene.step_text_json):[],
-  guardianGuide:scene?.teacher_prompt||null,
+  guardianGuide:scene?.teacher_prompt||shapeLab?.teacher_prompt||null,
+  shapeLab:shapeLab?JSON.parse(shapeLab.lab_json):null,
+  guidedSteps:shapeLab?JSON.parse(shapeLab.step_text_json):(scene?JSON.parse(scene.step_text_json):[]),
   questions:questions(row.id).map(q=>({
    id:q.id,position:q.position,prompt:q.question_text,options:JSON.parse(q.choices_json)
   }))};
