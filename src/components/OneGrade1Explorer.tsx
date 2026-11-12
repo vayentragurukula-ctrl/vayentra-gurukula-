@@ -3,6 +3,7 @@ import {ArrowLeft,ArrowRight,BookHeart,BookOpen,CheckCircle2,ChevronDown,Graduat
  Lightbulb,LockKeyhole,RefreshCw,ShieldCheck,Sparkles,Target,WalletCards,Volume2,VolumeX} from 'lucide-react';
 import {useApp} from '../context/AppContext';
 import {OneGrade1MathsScene,type PictureScene} from './OneGrade1MathsScene';
+import {OneGrade1ShapeLab,type ShapeLabScene} from './OneGrade1ShapeLab';
 import '../styles/one-grade1.css';
 
 type Unit={id:string;title:string;status:string};
@@ -11,7 +12,7 @@ type Subject={id:string;name:string;kind:string;book:string;sourceStatus:string;
 type MapData={board:string;grade:number;edition:string;trackStatus:string;subjects:Subject[];note:string};
 type Catalogue={learner:{grade:number;board:string};catalogue:MapData;access:'locked'|'pilot_or_entitled';progress:{checkedLessons:number;attemptsRecorded:number;latestChecks:Array<{unitId:string;correct:number;total:number;checkedAt:string}>}|null};
 type Question={id:string;position:number;prompt:string;options:string[]};
-type Lesson={id:string;subject:string;chapter:string;title:string;objective:string;story:string;homeActivity:string;questions:Question[];expectedMinutes:number;curriculumKind:string;pictureScene?:PictureScene|null;guidedSteps?:string[];guardianGuide?:string|null};
+type Lesson={id:string;subject:string;chapter:string;title:string;objective:string;story:string;homeActivity:string;questions:Question[];expectedMinutes:number;curriculumKind:string;pictureScene?:PictureScene|null;shapeLab?:ShapeLabScene|null;guidedSteps?:string[];guardianGuide?:string|null};
 type Result={correct:number;total:number;feedback:Array<{questionId:string;chosenIndex:number;correctIndex:number;correct:boolean;reason:string}>;replayed:boolean};
 
 const subjectIcon=(name:string)=>name.includes('Money')?'money':name.includes('AI')?'ai':name.includes('Mathematics')?'math':'book';
@@ -108,6 +109,7 @@ export const OneGrade1Explorer:React.FC<{parentPreviewStudentId?:string}>=({pare
     <button type="button" className="vg1-minibutton" onClick={closeLesson}><ArrowLeft size={16}/> Back to subjects</button>
     <div className="vg1-lesson-title"><span>{lesson.subject} · {lesson.chapter}</span><h3>{lesson.title}</h3><p><Target size={18}/>{lesson.objective}</p></div>
     {lesson.pictureScene&&<OneGrade1MathsScene scene={lesson.pictureScene} title={lesson.title}/>}
+    {lesson.shapeLab&&<OneGrade1ShapeLab lab={lesson.shapeLab} title={lesson.title}/>}
     {lesson.guidedSteps&&lesson.guidedSteps.length>0&&<section className="vg1m-guided" aria-label="Try these steps">
       <h4>Let's discover together</h4><ol>{lesson.guidedSteps.map((step,i)=><li key={i}><span>{i+1}</span>{step}</li>)}</ol>
     </section>}
