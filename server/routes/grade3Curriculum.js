@@ -69,12 +69,13 @@ function context(req, res, selectedId, needAccess) {
     return null;
   }
   const record = db.prepare(`
-    SELECT s.id, s.grade, s.board, m.membership_status, m.entitlement_status
+    SELECT s.id, s.grade, s.board, s.has_consent, m.membership_status, m.entitlement_status
     FROM students s JOIN one_memberships m ON m.student_id=s.id WHERE s.id=?
   `).get(studentId);
   const cBoard = record ? canonicalBoard(record.board) : null;
   if (
     !record ||
+    record.has_consent !== 1 ||
     record.grade !== 3 ||
     !boardValid(record.board) ||
     record.membership_status !== 'active' ||
