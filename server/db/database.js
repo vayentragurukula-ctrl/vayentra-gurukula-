@@ -291,6 +291,11 @@ export function initDatabase() {
   // Foundation branch is development-only. Never seed demo accounts into production.
   if(process.env.NODE_ENV !== 'production') seedInitialData();
   runMigrations();
+  // Test-only fixture normalization: synthetic test learners must explicitly opt in.
+  // Production never seeds demo learners or bypasses parental consent.
+  if (process.env.NODE_ENV === 'test') {
+    db.prepare("UPDATE students SET has_consent = 1 WHERE has_consent = 0").run();
+  }
 }
 
 function seedInitialData() {
