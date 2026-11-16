@@ -55,13 +55,10 @@ authRouter.post('/login', (req, res) => {
 
     // Check if account is flagged for mandatory security credential reset
     if (user.must_reset_password === 1) {
-      if (process.env.NODE_ENV === 'production' || req.headers['x-test-enforce-reset']) {
-        return res.status(403).json({
-          code: 'PASSWORD_RESET_REQUIRED',
-          message: 'This account was flagged during security audit for a mandatory password reset. Please use your activation or password reset link to establish a secure password.',
-          userId: user.id
-        });
-      }
+      return res.status(403).json({
+        code: 'PASSWORD_RESET_REQUIRED',
+        message: 'Credential reset required. Complete verified account recovery before signing in.'
+      });
     }
 
     // Hydrate role profiles
@@ -86,7 +83,8 @@ authRouter.post('/login', (req, res) => {
         email: user.email,
         name: user.name,
         guardianId: guardian?.id,
-        studentId: student?.id
+        studentId: student?.id,
+        sessionVersion: user.session_version || 0
       },
       JWT_SECRET,
       { expiresIn: '7d' }
@@ -308,7 +306,7 @@ authRouter.post('/activate-account', (req, res) => {
   try {
     db.prepare(`
       UPDATE users 
-      SET password_hash = ?
+      SET password_hash = ?, must_reset_password = 0, session_version = session_version + 1
       WHERE id = ?
     `).run(newHash, tokenRecord.user_id);
 
@@ -373,7 +371,7 @@ authRouter.post('/parent/set-student-credentials', authenticateToken, requireRol
       return res.status(404).json({ code: 'STUDENT_USER_NOT_LINKED', message: 'Student has no linked user account.' });
     }
     const newHash = bcrypt.hashSync(password, 10);
-    db.prepare('UPDATE users SET password_hash = ? WHERE id = ?').run(newHash, link.user_id);
+    db.prepare('UPDATE users SET password_hash = ?, must_reset_password = 0, session_version = session_version + 1 WHERE id = ?').run(newHash, link.user_id);
     updates.push('password');
   }
 
