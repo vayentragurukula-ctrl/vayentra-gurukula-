@@ -17,7 +17,7 @@ type Tab = 'instant_admission' | 'enquiry';
 
 export const AdmissionsPage: React.FC<Props> = ({ onBack, onLogin, onPricing, onCheckout }) => {
   const initialGrade = Number(new URLSearchParams(window.location.search).get('class'));
-  const [activeTab, setActiveTab] = useState<Tab>('instant_admission');
+  const [activeTab, setActiveTab] = useState<Tab>('enquiry');
 
   // Common and Admission Form State
   const [grade, setGrade] = useState(
