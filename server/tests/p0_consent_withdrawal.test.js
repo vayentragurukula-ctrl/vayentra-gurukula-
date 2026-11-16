@@ -45,6 +45,22 @@ test('P0: verified guardian can withdraw consent and immediately suspend learner
     assert.equal(guardianLearner.status,404);
     const privateOutline=await request('/api/v1/one-content/students/'+studentId+'/outline',token);
     assert.equal(privateOutline.status,403);
+
+    // Data erasure is a separately recorded request, not an instant hard delete.
+    const erasurePath='/api/v1/one-onboarding/guardian/learners/'+studentId+'/erasure-requests';
+    const noConfirmation=await request(erasurePath,token,'POST',{confirmed:false});
+    assert.equal(noConfirmation.status,400);
+    const created=await request(erasurePath,token,'POST',{confirmed:true});
+    assert.equal(created.status,202);
+    assert.equal(created.body.status,'pending_review');
+    assert.equal(created.body.erasureCompleted,false);
+    const repeated=await request(erasurePath,token,'POST',{confirmed:true});
+    assert.equal(repeated.status,200);
+    assert.equal(repeated.body.requestId,created.body.requestId);
+    const requests=await request(erasurePath,token);
+    assert.equal(requests.status,200);
+    assert.equal(requests.body.requests.length,1);
+    assert.ok(db.prepare('SELECT id FROM students WHERE id=?').get(studentId),'Request must not silently delete a learner');
   } finally {
     await new Promise((resolve,reject)=>server.close(err=>err?reject(err):resolve()));
   }
