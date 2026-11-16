@@ -345,8 +345,8 @@ test('Vayentra Gurukula — Phase 3 Admissions, ₹599 Subscription & Razorpay T
     // Simulate expired subscription for a test student
     const expStudentId = 'stu-expired-test';
     db.prepare(`
-      INSERT OR IGNORE INTO students (id, guardian_id, name, grade, board, medium, school_name, status)
-      VALUES (?, 'par-001', 'Maya Expired', 1, 'CBSE', 'English', 'Test School', 'active')
+      INSERT OR IGNORE INTO students (id, guardian_id, name, grade, board, medium, school_name, status, has_consent)
+      VALUES (?, 'par-001', 'Maya Expired', 1, 'CBSE', 'English', 'Test School', 'active', 1)
     `).run(expStudentId);
 
     db.prepare(`
