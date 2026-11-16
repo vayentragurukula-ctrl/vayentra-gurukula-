@@ -57,10 +57,10 @@ function context(req,res,selectedId,needAccess){
   fail(res,'LEARNER_OWNERSHIP_REQUIRED',403);return null;
  }
  const record=db.prepare(`
-  SELECT s.id,s.grade,s.board,m.membership_status,m.entitlement_status
+  SELECT s.id,s.grade,s.board,s.has_consent,m.membership_status,m.entitlement_status
   FROM students s JOIN one_memberships m ON m.student_id=s.id WHERE s.id=?
  `).get(studentId);
- if(!record||record.grade!==1||!boardValid(record.board)||record.membership_status!=='active'||
+ if(!record||record.has_consent!==1||record.grade!==1||!boardValid(record.board)||record.membership_status!=='active'||
     !db.prepare("SELECT 1 FROM one_academic_years WHERE student_id=? AND status='active' AND grade=1 AND board=?").get(studentId,record.board)||
     !db.prepare('SELECT 1 FROM one_consent_reviews WHERE student_id=?').get(studentId)){
   fail(res,'CLASS1_ENROLMENT_REQUIRED',403);return null;

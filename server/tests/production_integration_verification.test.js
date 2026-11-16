@@ -2,9 +2,12 @@ import 'dotenv/config';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import crypto from 'node:crypto';
+import { app } from '../index.js';
+import { db } from '../db/database.js';
+import { seedAndPublishGrade1Curriculum } from '../services/seedAndPublishGrade1Curriculum.js';
 import { RAZORPAY_KEY_SECRET, RAZORPAY_WEBHOOK_SECRET } from '../services/subscriptionService.js';
 
-const BASE_URL = 'http://localhost:5001';
+let BASE_URL; // isolated ephemeral HTTP server for CI, never an external production endpoint
 
 async function api(path, { method = 'GET', body = null, token = null, headers = {} } = {}) {
   const reqHeaders = { ...headers };
@@ -37,6 +40,13 @@ async function api(path, { method = 'GET', body = null, token = null, headers = 
 }
 
 test('PRODUCTION INTEGRATION VERIFICATION SUITE', async (t) => {
+  // Run the existing integration assertions against a local, in-memory TEST server.
+  // This does not send requests to live infrastructure or capture real payments.
+  seedAndPublishGrade1Curriculum(db);
+  const server = app.listen(0, '127.0.0.1');
+  await new Promise(resolve => server.once('listening', resolve));
+  BASE_URL = 'http://127.0.0.1:' + server.address().port;
+  t.after(() => new Promise((resolve, reject) => server.close(err => err ? reject(err) : resolve())));
   let adminToken = '';
   let parentToken = '';
   let studentToken = '';

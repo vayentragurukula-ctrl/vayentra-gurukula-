@@ -36,8 +36,9 @@ function ownStudent(req,studentId){
 `).get(studentId,req.user.guardianId,req.user.guardianId,req.user.guardianId));
 }
 function studentAccess(studentId){
- const student=db.prepare('SELECT id,grade,board FROM students WHERE id=?').get(studentId);
+ const student=db.prepare('SELECT id,grade,board,has_consent FROM students WHERE id=?').get(studentId);
  if(!student||student.grade!==4||student.board!=='CBSE')return {code:'COURSE_NOT_IN_ENROLLED_GRADE'};
+ if(student.has_consent!==1)return {code:'GUARDIAN_CONSENT_WITHDRAWN'};
  const year=db.prepare(`
   SELECT id FROM one_academic_years WHERE student_id=? AND status='active' AND grade=4 AND board='CBSE'
  `).get(studentId);

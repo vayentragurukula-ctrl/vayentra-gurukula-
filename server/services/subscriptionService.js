@@ -13,6 +13,11 @@ export const RAZORPAY_WEBHOOK_SECRET = process.env.RAZORPAY_WEBHOOK_SECRET || (p
  */
 export function checkStudentEntitlement(studentId) {
   if (!studentId) return { active: false, status: 'not_configured', subscription: null };
+  // Parental consent withdrawal overrides all paid entitlements and pilot grants.
+  const consent = db.prepare('SELECT has_consent FROM students WHERE id = ?').get(studentId);
+  if (!consent || consent.has_consent !== 1) {
+    return { active: false, status: 'consent_withdrawn', subscription: null, needsGuardianReview: true };
+  }
 
   // 1. Check for active paid student subscription (expires_at > datetime('now'))
   const activeSub = db.prepare(`

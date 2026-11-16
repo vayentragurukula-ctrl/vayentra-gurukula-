@@ -247,15 +247,14 @@ describe('Vayentra Gurukula Security & Authorization Suite', () => {
       assert.equal(res.status, 403);
     });
 
-    test('POST /api/v1/checkout - Authorized for Parent role (200)', async () => {
+    test('POST /api/v1/checkout - Legacy checkout retired for Parent role (410)', async () => {
       const res = await apiRequest('/api/v1/checkout', {
         method: 'POST',
         headers: { Authorization: `Bearer ${parentToken}` },
         body: { planId: 'plan-annual-pro' }
       });
-      assert.equal(res.status, 200);
-      assert.equal(res.body.success, true);
-      assert.ok(res.body.orderId);
+      assert.equal(res.status, 410);
+      assert.equal(res.body.code, 'LEGACY_CHECKOUT_RETIRED');
     });
   });
 

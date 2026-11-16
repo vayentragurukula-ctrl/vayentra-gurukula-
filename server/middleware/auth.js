@@ -29,13 +29,24 @@ export function authenticateToken(req, res, next) {
 
   try {
     const decoded = jwt.verify(token, JWT_SECRET);
-    const user = db.prepare('SELECT id, email, name, role, avatar FROM users WHERE id = ?').get(decoded.userId);
+    const user = db.prepare('SELECT id, email, name, role, avatar, must_reset_password, session_version FROM users WHERE id = ?').get(decoded.userId);
 
     if (!user) {
       return res.status(401).json({
         code: 'USER_NOT_FOUND',
         message: 'The authenticated user session belongs to an account that no longer exists.'
       });
+    }
+
+    // Revoke all older access tokens after any verified credential reset.
+    // JWTs minted before session-version introduction remain valid only for version 0.
+    if (decoded.sessionVersion !== undefined
+      ? decoded.sessionVersion !== user.session_version
+      : user.session_version !== 0) {
+      return res.status(401).json({code:'SESSION_REVOKED',message:'Please sign in again.'});
+    }
+    if (user.must_reset_password === 1) {
+      return res.status(403).json({code:'PASSWORD_RESET_REQUIRED',message:'Credential reset required before account access.'});
     }
 
     // Attach contextual profile records
@@ -51,6 +62,7 @@ export function authenticateToken(req, res, next) {
         'SELECT s.* FROM students s JOIN one_student_account_links l ON l.student_id=s.id WHERE l.user_id=?'
       ).get(user.id);
       if (!student) return res.status(403).json({code:'STUDENT_LINK_REQUIRED',message:'Student account is not linked to a verified learner profile.'});
+      if (student.has_consent !== 1) return res.status(403).json({code:'GUARDIAN_CONSENT_WITHDRAWN',message:'Learning access is suspended because guardian consent is not active.'});
     } else if (user.role === 'teacher') {
       teacher = db.prepare('SELECT * FROM teachers WHERE user_id = ?').get(user.id);
     }
@@ -127,7 +139,7 @@ export function requireChildOwnership(req, res, next) {
       });
     }
 
-    const child = db.prepare('SELECT id FROM students WHERE id = ? AND guardian_id = ?').get(
+    const child = db.prepare('SELECT id, has_consent FROM students WHERE id = ? AND guardian_id = ?').get(
       requestedStudentId,
       req.user.guardianId
     );
@@ -139,6 +151,7 @@ export function requireChildOwnership(req, res, next) {
       });
     }
 
+    if (child.has_consent !== 1) return res.status(403).json({code:'GUARDIAN_CONSENT_WITHDRAWN',message:'Learner data access is suspended.'});
     return next();
   }
 

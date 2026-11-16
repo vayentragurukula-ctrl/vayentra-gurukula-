@@ -228,6 +228,10 @@ export function seedAndPublishGrade3Curriculum(targetDb) {
         guardian_id='par-001', notice_version='v2026.1'
     `).run();
 
+    // Synthetic test fixtures only: explicit consent for test-owned learner records.
+    if (process.env.NODE_ENV === 'test') {
+      db.prepare("UPDATE students SET has_consent=1 WHERE id='stu-g3-001'").run();
+    }
     db.exec('COMMIT');
     console.log(`[Grade 3 Publisher] Successfully published ${publishedUnitsCount} Class 3 lessons across CBSE & STATE.`);
     return { publishedUnits: publishedUnitsCount };

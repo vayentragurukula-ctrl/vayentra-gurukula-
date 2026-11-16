@@ -45,7 +45,8 @@ function validateApplication(body){
  return {name,grade,board,year,key};
 }
 function studentLearning(studentId){
- const s=db.prepare('SELECT id,name,enrollment_number FROM students WHERE id=?').get(studentId);
+ const s=db.prepare('SELECT id,name,enrollment_number,has_consent FROM students WHERE id=?').get(studentId);
+ if(s && s.has_consent!==1)return null;
  const m=db.prepare('SELECT * FROM one_memberships WHERE student_id=?').get(studentId);
  const y=db.prepare("SELECT * FROM one_academic_years WHERE student_id=? AND status='active'").get(studentId);
  if(!s||!m||m.membership_status!=='active'||!y)return null;
@@ -160,6 +161,78 @@ oneOnboardingRouter.get('/guardian/learners/:studentId/home',requireRole('parent
   if(!learner)return problem(res,'ACTIVE_LEARNER_NOT_FOUND',404);
   return res.json({learner,viewMode:'guardian_supervised'});
  }catch(err){console.error('[ONE guardian learner view]',err);return problem(res,'LEARNER_HOME_FAILED',500);}
+});
+
+// Guardian may withdraw consent immediately. This suspends educational access;
+// deletion/erasure is a separately reviewed, auditable request (not an instant hard delete).
+oneOnboardingRouter.post('/guardian/learners/:studentId/withdraw-consent',requireRole('parent'),(req,res)=>{
+ const guardianId=guardianIdFor(req.user);
+ const studentId=req.params.studentId;
+ if(!guardianId)return problem(res,'GUARDIAN_ACCOUNT_REQUIRED',403);
+ if(req.body?.confirmed!==true)return problem(res,'CONFIRMATION_REQUIRED',400);
+ try{
+  const result=atomic(()=>{
+   const student=db.prepare('SELECT id,guardian_id,has_consent FROM students WHERE id=? AND guardian_id=?').get(studentId,guardianId);
+   if(!student)return {notOwned:true};
+   if(student.has_consent===0)return {already:true};
+   db.prepare("UPDATE students SET has_consent=0 WHERE id=? AND guardian_id=?").run(studentId,guardianId);
+   db.prepare("UPDATE one_memberships SET entitlement_status='not_configured',updated_at=datetime('now') WHERE student_id=? AND guardian_id=?").run(studentId,guardianId);
+   db.prepare("UPDATE consent_records SET is_revoked=1 WHERE student_id=? AND guardian_id=?").run(studentId,guardianId);
+   db.prepare(`INSERT INTO one_journey_audit (id,actor_user_id,student_id,action,detail_code)
+     VALUES (?,?,?,'GUARDIAN_CONSENT_WITHDRAWN','LEARNER_ACCESS_SUSPENDED_ERASURE_REVIEW_REQUIRED')`
+   ).run('one-audit-'+randomUUID(),req.user.id,studentId);
+   return {revoked:true};
+  });
+  if(result.notOwned)return problem(res,'LEARNER_ACCESS_DENIED',403);
+  return res.json({consentWithdrawn:true,alreadyWithdrawn:Boolean(result.already),
+   learningAccess:'suspended',erasureStatus:'requires_separate_verified_review',
+   message:'Consent has been withdrawn and learning access suspended. Contact support for a verified data-erasure request.'});
+ }catch(err){console.error('[ONE consent withdrawal]',err);return problem(res,'WITHDRAWAL_FAILED',500);}
+});
+
+// An authenticated guardian can initiate a traceable erasure request.
+// A pending request is NOT proof of deletion; fulfillment needs legal/retention review.
+oneOnboardingRouter.post('/guardian/learners/:studentId/erasure-requests',requireRole('parent'),(req,res)=>{
+ const guardianId=guardianIdFor(req.user);
+ const studentId=req.params.studentId;
+ if(!guardianId)return problem(res,'GUARDIAN_ACCOUNT_REQUIRED',403);
+ if(req.body?.confirmed!==true)return problem(res,'CONFIRMATION_REQUIRED',400);
+ try{
+  const result=atomic(()=>{
+   const child=db.prepare('SELECT id FROM students WHERE id=? AND guardian_id=?').get(studentId,guardianId);
+   if(!child)return {notOwned:true};
+   const current=db.prepare(`SELECT id,status FROM guardian_privacy_requests
+     WHERE student_id=? AND guardian_id=? AND request_type='erasure'
+     AND status IN ('pending_review','under_review') ORDER BY created_at DESC LIMIT 1`
+   ).get(studentId,guardianId);
+   if(current)return {existing:current};
+   const requestId='privacy-'+randomUUID();
+   db.prepare(`INSERT INTO guardian_privacy_requests(id,student_id,guardian_id,request_type,status)
+    VALUES (?,?,?,'erasure','pending_review')`).run(requestId,studentId,guardianId);
+   db.prepare(`INSERT INTO one_journey_audit(id,actor_user_id,student_id,action,detail_code)
+     VALUES (?,?,?,'GUARDIAN_ERASURE_REQUESTED','REVIEW_PENDING_NO_AUTOMATIC_DELETION')`
+   ).run('one-audit-'+randomUUID(),req.user.id,studentId);
+   return {created:requestId};
+  });
+  if(result.notOwned)return problem(res,'LEARNER_ACCESS_DENIED',403);
+  return res.status(result.created?202:200).json({
+   requestId:result.created||result.existing.id,
+   status:result.created?'pending_review':result.existing.status,
+   erasureCompleted:false,
+   message:'Your request has been recorded for verified privacy and retention review.'
+  });
+ }catch(err){console.error('[ONE privacy request]',err);return problem(res,'PRIVACY_REQUEST_FAILED',500);}
+});
+
+oneOnboardingRouter.get('/guardian/learners/:studentId/erasure-requests',requireRole('parent'),(req,res)=>{
+ const guardianId=guardianIdFor(req.user);
+ if(!guardianId)return problem(res,'GUARDIAN_ACCOUNT_REQUIRED',403);
+ const child=db.prepare('SELECT id FROM students WHERE id=? AND guardian_id=?').get(req.params.studentId,guardianId);
+ if(!child)return problem(res,'LEARNER_ACCESS_DENIED',403);
+ const requests=db.prepare(`SELECT id,request_type,status,created_at,reviewed_at
+   FROM guardian_privacy_requests WHERE student_id=? AND guardian_id=?
+   ORDER BY created_at DESC LIMIT 20`).all(child.id,guardianId);
+ return res.json({requests});
 });
 
 // Admin routes are mounted after role restriction; no learner browsing for parents.

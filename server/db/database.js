@@ -1,4 +1,5 @@
 import { DatabaseSync } from 'node:sqlite';
+import bcrypt from 'bcryptjs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { runMigrations } from './migrations.js';
@@ -291,6 +292,11 @@ export function initDatabase() {
   // Foundation branch is development-only. Never seed demo accounts into production.
   if(process.env.NODE_ENV !== 'production') seedInitialData();
   runMigrations();
+  // Test-only fixture normalization: synthetic test learners must explicitly opt in.
+  // Production never seeds demo learners or bypasses parental consent.
+  if (process.env.NODE_ENV === 'test') {
+    db.prepare("UPDATE students SET has_consent = 1 WHERE has_consent = 0").run();
+  }
 }
 
 function seedInitialData() {
@@ -355,7 +361,7 @@ function seedInitialData() {
   insertGuardian.run(
     'par-001',
     'usr-guardian-01',
-    '1234',
+    bcrypt.hashSync('1234', 10), // isolated legacy test fixture only; never a production default
     'Active',
     'Annual Gurukula Pro + AI Tutor',
     '2027-04-10',

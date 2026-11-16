@@ -388,6 +388,7 @@ async function handleVerifyPayment(req, res, authUser = null) {
 }
 
 paymentsRouter.post('/verify', (req, res) => {
+  if (process.env.NODE_ENV !== 'test') return res.status(503).json({ code: 'PAYMENTS_PAUSED_SECURITY_REVIEW', message: 'Payment activation is disabled pending release approval.' });
   const authHeader = req.headers.authorization;
   if (authHeader && authHeader.startsWith('Bearer ')) {
     authenticateToken(req, res, () => {
@@ -448,6 +449,7 @@ function webhookCapture({ paymentRecordId, paymentId, eventId, method, studentId
  * 4. Razorpay Webhook Handler (Durable, Idempotent, HMAC-verified)
  */
 paymentsRouter.post('/webhook', (req, res) => {
+  if (process.env.NODE_ENV !== 'test') return res.status(503).json({ code: 'PAYMENTS_PAUSED_SECURITY_REVIEW', message: 'Webhook processing is disabled pending release approval.' });
   const signature = req.headers['x-razorpay-signature'];
   if (!signature) {
     return res.status(400).json({ code: 'MISSING_WEBHOOK_SIGNATURE', message: 'x-razorpay-signature header is mandatory.' });

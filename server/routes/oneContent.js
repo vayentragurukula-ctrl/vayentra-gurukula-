@@ -6,6 +6,15 @@ import {authenticateToken,requireRole,requireChildOwnership} from '../middleware
 export const oneContentRouter=Router();
 oneContentRouter.use((_req,res,next)=>{res.setHeader('Cache-Control','no-store');next();});
 oneContentRouter.use(authenticateToken);
+// Consent withdrawal always overrides paid access, pilot grants and historical membership flags.
+oneContentRouter.use((req,res,next)=>{
+ const studentId=req.user.role==='student'?req.user.studentId:(req.params.studentId||req.body?.studentId||req.query?.studentId);
+ if(!studentId||req.user.role==='admin')return next();
+ const record=db.prepare('SELECT has_consent,guardian_id FROM students WHERE id=?').get(studentId);
+ if(!record||record.has_consent!==1)return fail(res,'GUARDIAN_CONSENT_WITHDRAWN',403,'Learner data access is suspended.');
+ if(req.user.role==='parent'&&record.guardian_id!==req.user.guardianId)return fail(res,'STUDENT_ACCESS_DENIED',403);
+ next();
+});
 const fail=(res,code,status=400,message='Request could not be completed.')=>
  res.status(status).json({code,message});
 const str=(value,max=120)=>typeof value==='string'?value.trim().slice(0,max+1):'';
@@ -24,8 +33,9 @@ function audit(req,studentId,action,detail){
 oneContentRouter.get('/students/:studentId/outline',requireRole(['parent','admin']),requireChildOwnership,(req,res)=>{
  const studentId=req.params.studentId;
  try{
-  const student=db.prepare('SELECT id,grade,board FROM students WHERE id=?').get(studentId);
+  const student=db.prepare('SELECT id,grade,board,has_consent FROM students WHERE id=?').get(studentId);
   if(!student)return fail(res,'STUDENT_NOT_FOUND',404);
+  if(student.has_consent!==1)return fail(res,'GUARDIAN_CONSENT_WITHDRAWN',403,'Learning access is suspended.');
   const membership=db.prepare('SELECT membership_status,entitlement_status FROM one_memberships WHERE student_id=?').get(studentId);
   if(req.user.role!=='admin'&&(!membership||membership.membership_status!=='active'||membership.entitlement_status!=='enabled'))
    return fail(res,'MEMBERSHIP_ACCESS_PENDING',403,'Learning access is not enabled for this student.');

@@ -90,9 +90,9 @@ export const PublicView: React.FC = () => {
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '13px', fontWeight: 600 }}>
           <span className="chip" style={{ background: 'var(--color-gold-primary)', color: '#ffffff', border: 'none', padding: '3px 10px' }}>
-            ✦ 2026–2027 ADMISSIONS
+            ✦ FOUNDATIONAL PILOT PREPARATION
           </span>
-          <span>Classes 1 to 10 • CBSE & Karnataka State Board • Concept-Based Learning</span>
+          <span>Digital Classes 1–2 pilot under review • Classes 3–10 in development</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <button 
@@ -231,7 +231,7 @@ export const PublicView: React.FC = () => {
             PEDAGOGICAL EXCELLENCE
           </div>
           <h2 style={{ fontSize: '28px', marginTop: '10px', color: 'var(--color-navy-primary)' }}>
-            Our 5 Educational Pillars for Classes 1 to 10
+            Our 5 Educational Pillars — Future Vision for Classes 1 to 10
           </h2>
           <p className="t-muted" style={{ fontSize: '15px', marginTop: '6px' }}>
             Designed around how children naturally discover, calculate, articulate, and build lasting academic mastery.
@@ -379,7 +379,7 @@ export const PublicView: React.FC = () => {
             BOARD-ALIGNED SYLLABUS DISCOVERY
           </div>
           <h2 style={{ fontSize: '28px', marginTop: '10px', color: 'var(--color-navy-primary)' }}>
-            Explore Curriculum Topics for Classes 1 to 10
+            Explore Our Proposed Class 1 to 10 Curriculum Roadmap
           </h2>
           <p className="t-muted" style={{ fontSize: '15px', marginTop: '6px' }}>
             Check curriculum coverage, pedagogical breakdown, and try authentic lesson checkpoints for your child's board and grade.
