@@ -42,3 +42,25 @@ test('P0: flagged credentials are rejected; versioned JWTs are revoked after res
     assert.equal((await res.json()).code,'SESSION_REVOKED');
   }finally{await new Promise(r=>server.close(r))}
 });
+
+test('P0: logout invalidates a previously authenticated session token',async()=>{
+  const id='p0-logout-fixture-'+Date.now();
+  const email=id+'@example.test';
+  db.prepare('INSERT INTO users (id,name,email,role,password_hash) VALUES (?,?,?,?,?)')
+    .run(id,'Logout Test',email,'parent',bcrypt.hashSync('StrongPassword#2026',10));
+  const server=app.listen(0,'127.0.0.1');
+  await new Promise(r=>server.once('listening',r));
+  const base='http://127.0.0.1:'+server.address().port;
+  try{
+    const auth=await fetch(base+'/api/v1/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,password:'StrongPassword#2026'})});
+    assert.equal(auth.status,200);
+    const {token}=await auth.json();
+    let res=await fetch(base+'/api/v1/auth/me',{headers:{Authorization:'Bearer '+token}});
+    assert.equal(res.status,200);
+    res=await fetch(base+'/api/v1/auth/logout',{method:'POST',headers:{Authorization:'Bearer '+token}});
+    assert.equal(res.status,200);
+    res=await fetch(base+'/api/v1/auth/me',{headers:{Authorization:'Bearer '+token}});
+    assert.equal(res.status,401);
+    assert.equal((await res.json()).code,'SESSION_REVOKED');
+  }finally{await new Promise(r=>server.close(r))}
+});
