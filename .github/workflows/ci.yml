@@ -1,0 +1,42 @@
+name: P0 Security and Platform Verification
+on:
+  push:
+    branches:
+      - security/**
+  pull_request:
+    branches:
+      - yashdev
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      NODE_ENV: test
+      RAZORPAY_FORCE_MOCK: 'true'
+      RAZORPAY_SANDBOX_ADAPTER: 'true'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Confirm no runtime database tracked
+        run: |
+          if git ls-files --error-unmatch server/db/vayentra.sqlite >/dev/null 2>&1; then
+            echo "::error::Runtime SQLite database must not be tracked"
+            exit 1
+          fi
+      - run: npm ci
+      - name: Security regression suite
+        run: node --test --test-concurrency=1 server/tests/p0_security_gates.test.js
+      - name: Full backend suite
+        run: npm test
+      - name: TypeScript and production frontend build
+        run: npm run build
