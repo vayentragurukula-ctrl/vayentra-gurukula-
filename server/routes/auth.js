@@ -352,7 +352,7 @@ authRouter.post('/parent/set-student-credentials', authenticateToken, requireRol
   }
 
   // Security check: parent can only manage their linked child
-  if (req.user.role === 'parent' && req.user.guardianId && student.guardian_id !== req.user.guardianId) {
+  if (req.user.role === 'parent' && (!req.user.guardianId || student.guardian_id !== req.user.guardianId)) {
     return res.status(403).json({
       code: 'STUDENT_ACCESS_DENIED',
       message: 'You can only manage credentials for your linked children.'
