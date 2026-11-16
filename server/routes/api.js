@@ -3,6 +3,37 @@ import { db } from '../db/database.js';
 import { authenticateToken, requireRole, requireChildOwnership } from '../middleware/auth.js';
 
 export const apiRouter = Router();
+/**
+ * P0: Every learner-specific legacy action must be bound to a verified learner,
+ * not to a caller-controlled studentId or an old demo default.
+ */
+function authorizeLearner(req, res, candidateId) {
+  const studentId=req.user?.role==='student' ? req.user.studentId : candidateId;
+  if(typeof studentId!=='string'||!studentId) {
+    res.status(400).json({code:'STUDENT_ID_REQUIRED'});
+    return null;
+  }
+  if(!['student','parent','admin'].includes(req.user?.role)) {
+    res.status(403).json({code:'LEARNER_ROLE_REQUIRED'});
+    return null;
+  }
+  const learner=db.prepare('SELECT id,name,guardian_id,has_consent FROM students WHERE id=?').get(studentId);
+  if(!learner) {
+    res.status(403).json({code:'LEARNER_ACCESS_DENIED'});
+    return null;
+  }
+  if((req.user.role==='student'&&req.user.studentId!==learner.id)
+    ||(req.user.role==='parent'&&(!req.user.guardianId||req.user.guardianId!==learner.guardian_id))) {
+    res.status(403).json({code:'LEARNER_ACCESS_DENIED'});
+    return null;
+  }
+  if(learner.has_consent!==1) {
+    res.status(403).json({code:'GUARDIAN_CONSENT_WITHDRAWN'});
+    return null;
+  }
+  return learner;
+}
+
 
 // ==========================================
 // 1. Health & Diagnostic
@@ -132,7 +163,10 @@ apiRouter.get('/school/chapters', (req, res) => {
 // Checkpoint Quiz Evaluation (enforces AT-04: Score >= 60% unlocks next episode)
 apiRouter.post('/school/chapters/:chapterId/episodes/:episodeId/checkpoint', authenticateToken, (req, res) => {
   const { chapterId, episodeId } = req.params;
-  const { scorePercent, studentId = 'stu-001', wrongQuestions = [] } = req.body;
+  const { scorePercent, wrongQuestions = [] } = req.body;
+  const learner=authorizeLearner(req,res,req.body?.studentId);
+  if(!learner)return;
+  const studentId=learner.id;
 
   try {
     // 1. Update Episode completion
@@ -341,7 +375,10 @@ apiRouter.get('/school/tests/:chapterId', (req, res) => {
 
 apiRouter.post('/school/tests/:testId/submit', authenticateToken, (req, res) => {
   const { testId } = req.params;
-  const { studentId = 'stu-001', answers = {}, durationSecs = 180 } = req.body;
+  const { answers = {}, durationSecs = 180 } = req.body;
+  const learner=authorizeLearner(req,res,req.body?.studentId);
+  if(!learner)return;
+  const studentId=learner.id;
 
   try {
     const test = db.prepare('SELECT * FROM timed_tests WHERE id = ?').get(testId);
@@ -413,7 +450,9 @@ apiRouter.post('/school/tests/:testId/submit', authenticateToken, (req, res) => 
 // 5. Mistake Notebook (Wireframe 37, PS-15)
 // ==========================================
 apiRouter.get('/mistakes', authenticateToken, requireChildOwnership, (req, res) => {
-  const { studentId = 'stu-001' } = req.query;
+  const learner=authorizeLearner(req,res,req.query?.studentId);
+  if(!learner)return;
+  const studentId=learner.id;
   try {
     const mistakes = db.prepare('SELECT * FROM mistake_notebook WHERE student_id = ? ORDER BY date_logged DESC').all(studentId);
     res.json(mistakes.map(m => ({
@@ -436,6 +475,9 @@ apiRouter.get('/mistakes', authenticateToken, requireChildOwnership, (req, res) 
 
 apiRouter.post('/mistakes/:id/resolve', authenticateToken, (req, res) => {
   const { id } = req.params;
+  const mistake=db.prepare('SELECT student_id FROM mistake_notebook WHERE id=?').get(id);
+  if(!mistake)return res.status(404).json({code:'NOT_FOUND'});
+  if(!authorizeLearner(req,res,mistake.student_id))return;
   try {
     db.prepare('UPDATE mistake_notebook SET is_resolved = 1 WHERE id = ?').run(id);
     res.json({ success: true, message: 'Concept mistake resolved! Great learning progress.' });
@@ -448,7 +490,9 @@ apiRouter.post('/mistakes/:id/resolve', authenticateToken, (req, res) => {
 // 6. Child-Safe AI Doubt Tutor (AT-07, Wireframe 22)
 // ==========================================
 apiRouter.get('/doubts', authenticateToken, requireChildOwnership, (req, res) => {
-  const { studentId = 'stu-001' } = req.query;
+  const learner=authorizeLearner(req,res,req.query?.studentId);
+  if(!learner)return;
+  const studentId=learner.id;
   try {
     const doubts = db.prepare('SELECT * FROM doubts WHERE student_id = ? ORDER BY timestamp DESC').all(studentId);
     res.json(doubts.map(d => ({
@@ -469,7 +513,11 @@ apiRouter.get('/doubts', authenticateToken, requireChildOwnership, (req, res) =>
 });
 
 apiRouter.post('/doubts/ask', authenticateToken, (req, res) => {
-  const { text, mediaType = 'text', studentId = 'stu-001', studentName = 'Aarav Varma', subject = 'Mathematics' } = req.body;
+  const { text, mediaType = 'text', subject = 'Mathematics' } = req.body;
+  const learner=authorizeLearner(req,res,req.body?.studentId);
+  if(!learner)return;
+  const studentId=learner.id;
+  const studentName=learner.name;
 
   if (!text || !text.trim()) {
     return res.status(400).json({ code: 'VALIDATION_ERROR', message: 'Doubt question cannot be empty.' });
