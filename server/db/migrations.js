@@ -2075,6 +2075,27 @@ export function runMigrations() {
       console.log('[Vayentra Security] Migration 021 completed.');
     }
 
+    // 022 — Privacy-request intake. Actual erasure requires retention/legal review.
+    const applied022 = db.prepare("SELECT id FROM migrations WHERE name='022_p0_guardian_privacy_request_ledger'").get();
+    if (!applied022) {
+      db.prepare(`
+        CREATE TABLE IF NOT EXISTS guardian_privacy_requests (
+          id TEXT PRIMARY KEY,
+          student_id TEXT NOT NULL REFERENCES students(id),
+          guardian_id TEXT NOT NULL REFERENCES guardians(id),
+          request_type TEXT NOT NULL CHECK(request_type IN ('erasure')),
+          status TEXT NOT NULL DEFAULT 'pending_review'
+            CHECK(status IN ('pending_review','under_review','completed','rejected')),
+          created_at TEXT NOT NULL DEFAULT (datetime('now')),
+          reviewed_at TEXT,
+          reviewer_user_id TEXT REFERENCES users(id)
+        )
+      `).run();
+      db.prepare('CREATE INDEX IF NOT EXISTS idx_guardian_privacy_pending ON guardian_privacy_requests(status,created_at)').run();
+      db.prepare("INSERT INTO migrations(name) VALUES('022_p0_guardian_privacy_request_ledger')").run();
+      console.log('[Vayentra Security] Migration 022 completed.');
+    }
+
     db.exec('COMMIT;');
   } catch (err) {
     db.exec('ROLLBACK;');
