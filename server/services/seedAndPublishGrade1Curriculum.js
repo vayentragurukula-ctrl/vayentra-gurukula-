@@ -918,6 +918,10 @@ export function seedAndPublishGrade1Curriculum(targetDb) {
         guardian_id='par-001', notice_version='v2026.1'
     `).run();
 
+    // Synthetic test fixtures only: explicit consent for test-owned learner records.
+    if (process.env.NODE_ENV === 'test') {
+      db.prepare("UPDATE students SET has_consent=1 WHERE id='stu-g1-001'").run();
+    }
     db.exec('COMMIT');
     console.log(`[Grade 1 Publisher] Successfully published ${publishedUnits.length} Class 1 lessons across CBSE & STATE.`);
     return { success: true, publishedUnitsCount: publishedUnits.length };
@@ -933,9 +937,5 @@ const isDirect = process.argv[1] && fileURLToPath(import.meta.url) === process.a
 if (isDirect) {
   const result = seedAndPublishGrade1Curriculum();
   console.log('Result:', result);
-  // Isolated automated-test fixtures only. Never use synthetic consent for real learners.
-  if (process.env.NODE_ENV === 'test') {
-    db.prepare("UPDATE students SET has_consent=1 WHERE id='stu-g1-001'").run();
-  }
 
 }
