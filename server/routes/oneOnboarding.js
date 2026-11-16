@@ -162,6 +162,33 @@ oneOnboardingRouter.get('/guardian/learners/:studentId/home',requireRole('parent
  }catch(err){console.error('[ONE guardian learner view]',err);return problem(res,'LEARNER_HOME_FAILED',500);}
 });
 
+// Guardian may withdraw consent immediately. This suspends educational access;
+// deletion/erasure is a separately reviewed, auditable request (not an instant hard delete).
+oneOnboardingRouter.post('/guardian/learners/:studentId/withdraw-consent',requireRole('parent'),(req,res)=>{
+ const guardianId=guardianIdFor(req.user);
+ const studentId=req.params.studentId;
+ if(!guardianId)return problem(res,'GUARDIAN_ACCOUNT_REQUIRED',403);
+ if(req.body?.confirmed!==true)return problem(res,'CONFIRMATION_REQUIRED',400);
+ try{
+  const result=atomic(()=>{
+   const student=db.prepare('SELECT id,guardian_id,has_consent FROM students WHERE id=? AND guardian_id=?').get(studentId,guardianId);
+   if(!student)return {notOwned:true};
+   if(student.has_consent===0)return {already:true};
+   db.prepare("UPDATE students SET has_consent=0 WHERE id=? AND guardian_id=?").run(studentId,guardianId);
+   db.prepare("UPDATE one_memberships SET entitlement_status='suspended',updated_at=datetime('now') WHERE student_id=? AND guardian_id=?").run(studentId,guardianId);
+   db.prepare("UPDATE consent_records SET is_revoked=1 WHERE student_id=? AND guardian_id=?").run(studentId,guardianId);
+   db.prepare(`INSERT INTO one_journey_audit (id,actor_user_id,student_id,action,detail_code)
+     VALUES (?,?,?,'GUARDIAN_CONSENT_WITHDRAWN','LEARNER_ACCESS_SUSPENDED_ERASURE_REVIEW_REQUIRED')`
+   ).run('one-audit-'+randomUUID(),req.user.id,studentId);
+   return {revoked:true};
+  });
+  if(result.notOwned)return problem(res,'LEARNER_ACCESS_DENIED',403);
+  return res.json({consentWithdrawn:true,alreadyWithdrawn:Boolean(result.already),
+   learningAccess:'suspended',erasureStatus:'requires_separate_verified_review',
+   message:'Consent has been withdrawn and learning access suspended. Contact support for a verified data-erasure request.'});
+ }catch(err){console.error('[ONE consent withdrawal]',err);return problem(res,'WITHDRAWAL_FAILED',500);}
+});
+
 // Admin routes are mounted after role restriction; no learner browsing for parents.
 oneOnboardingRouter.use('/admin',requireRole('admin'));
 oneOnboardingRouter.get('/admin/applications',(req,res)=>{
