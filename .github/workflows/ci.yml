@@ -39,4 +39,5 @@ jobs:
       - name: Full backend suite
         run: npm test
       - name: TypeScript and production frontend build
+        if: ${{ always() }}
         run: npm run build
