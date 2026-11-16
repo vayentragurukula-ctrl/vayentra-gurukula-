@@ -593,7 +593,7 @@ parentRouter.get('/reports/monthly/:studentId', authenticateToken, requireRole([
 // ==========================================
 // 5. Truthful Report Card Dispatch
 // ==========================================
-parentRouter.post('/notify/report-card', authenticateToken, requireRole(['parent', 'admin']), (req, res) => {
+parentRouter.post('/notify/report-card', authenticateToken, requireRole(['parent', 'admin']), requireChildOwnership, (req, res) => {
   const { studentId, month, attendancePercent, averageScore, integrityHash, channel = 'whatsapp' } = req.body;
 
   if (!studentId) {
