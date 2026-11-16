@@ -51,6 +51,7 @@ export function authenticateToken(req, res, next) {
         'SELECT s.* FROM students s JOIN one_student_account_links l ON l.student_id=s.id WHERE l.user_id=?'
       ).get(user.id);
       if (!student) return res.status(403).json({code:'STUDENT_LINK_REQUIRED',message:'Student account is not linked to a verified learner profile.'});
+      if (student.has_consent !== 1) return res.status(403).json({code:'GUARDIAN_CONSENT_WITHDRAWN',message:'Learning access is suspended because guardian consent is not active.'});
     } else if (user.role === 'teacher') {
       teacher = db.prepare('SELECT * FROM teachers WHERE user_id = ?').get(user.id);
     }
@@ -127,7 +128,7 @@ export function requireChildOwnership(req, res, next) {
       });
     }
 
-    const child = db.prepare('SELECT id FROM students WHERE id = ? AND guardian_id = ?').get(
+    const child = db.prepare('SELECT id, has_consent FROM students WHERE id = ? AND guardian_id = ?').get(
       requestedStudentId,
       req.user.guardianId
     );
@@ -139,6 +140,7 @@ export function requireChildOwnership(req, res, next) {
       });
     }
 
+    if (child.has_consent !== 1) return res.status(403).json({code:'GUARDIAN_CONSENT_WITHDRAWN',message:'Learner data access is suspended.'});
     return next();
   }
 
