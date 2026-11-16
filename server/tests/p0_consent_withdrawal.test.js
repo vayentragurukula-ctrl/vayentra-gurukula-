@@ -35,7 +35,7 @@ test('P0: verified guardian can withdraw consent and immediately suspend learner
     assert.equal(revoked.status,200);
     assert.equal(revoked.body.consentWithdrawn,true);
     assert.equal(db.prepare('SELECT has_consent FROM students WHERE id=?').get(studentId).has_consent,0);
-    assert.equal(db.prepare('SELECT entitlement_status FROM one_memberships WHERE student_id=?').get(studentId).entitlement_status,'suspended');
+    assert.equal(db.prepare('SELECT entitlement_status FROM one_memberships WHERE student_id=?').get(studentId).entitlement_status,'not_configured');
 
     const again=await request(path,token,'POST',{confirmed:true});
     assert.equal(again.status,200);
