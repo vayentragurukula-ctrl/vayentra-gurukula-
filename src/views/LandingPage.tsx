@@ -81,7 +81,7 @@ const pathways: Record<BandKey, {
 
 const questions = [
   {q:'What makes Vayentra Gurukula different?', a:'We prioritise conceptual clarity, real examples and individual teacher attention. Diagnostics and practice are there to help teachers recognise what a learner needs, rather than replace teaching.'},
-  {q:'Which classes and boards are supported?', a:'Our academic programmes cover Classes 1–10 with CBSE and Karnataka State Board support. Subject and batch availability should be confirmed with the institute before admission.'},
+  {q:'Which classes and boards are supported?', a:'The ₹599 digital product is being prepared for a Classes 1–2 foundational pilot. Class 3 and Classes 4–10 remain under development. Paid digital subscriptions are currently paused during security review.'},
   {q:'Is the learning platform open to everyone?', a:'Visitors can explore the public website and its available resources. Students use the separate login with their enrolled credentials to access private learning records.'},
   {q:'What happens after students sign in?', a:'Students select their class and board, then enter the appropriate authorised learning space. Access to private student records is controlled by the registered account, not by the class selected on screen.'}
 ];
@@ -127,7 +127,7 @@ export const LandingPage: React.FC<Props> = ({onLogin, onExplore, onAdmissions, 
           {onPricing && <button onClick={()=>onPricing()} style={{color: '#e7b867', fontWeight: 600}}>Plans (₹599)</button>}
           <button onClick={()=>jumpTo('the-experience')}>Student experience</button>
           <button onClick={()=>jumpTo('common-questions')}>FAQs</button>
-          <button onClick={()=>onAdmissions()}>Admissions</button>
+          <button onClick={()=>onAdmissions()}>Pilot enquiries</button>
         </nav>
         <div className="vgp-header-actions">
           <button type="button" className="vgp-header-login" onClick={onLogin}>Student login <ArrowUpRight size={18}/></button>
@@ -263,7 +263,7 @@ export const LandingPage: React.FC<Props> = ({onLogin, onExplore, onAdmissions, 
           <p>Concept-based academic coaching for Classes 1–10, Bengaluru.</p>
         </div>
         <div style={{display:'flex', gap: 20, alignItems: 'center', fontSize: 13}}>
-          {onPricing && <button className="vgp-text-link" onClick={onPricing} style={{background:'none',border:'none',color:'#a0aec0',cursor:'pointer'}}>Annual Pass (₹599)</button>}
+          {onPricing && <button className="vgp-text-link" onClick={onPricing} style={{background:'none',border:'none',color:'#a0aec0',cursor:'pointer'}}>Planned Foundation Pass (₹599)</button>}
           {onLegal && (
             <>
               <button className="vgp-text-link" onClick={() => onLegal('terms')} style={{background:'none',border:'none',color:'#a0aec0',cursor:'pointer'}}>Terms of Service</button>
