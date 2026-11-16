@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import http from 'node:http';
 import crypto from 'node:crypto';
+import bcrypt from 'bcryptjs';
 import fs from 'node:fs';
 import path from 'node:path';
 import { app } from '../index.js';
@@ -534,7 +535,8 @@ test('Vayentra Gurukula — Critical Security, Tax & Entitlement Remediation Sui
 
     // Verify PIN was updated in students table
     const child = db.prepare('SELECT child_pin FROM students WHERE id = ?').get('stu-001');
-    assert.equal(child.child_pin, '5678');
+    assert.notEqual(child.child_pin, '5678', 'Child PIN must never be stored in plaintext');
+    assert.equal(bcrypt.compareSync('5678', child.child_pin), true);
   });
 
   // ============================================================================
