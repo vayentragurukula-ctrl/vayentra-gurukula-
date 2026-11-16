@@ -274,4 +274,10 @@ export function seedAndPublishGrade2Curriculum(targetDb) {
 const isDirect = process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1];
 if (isDirect) {
   seedAndPublishGrade2Curriculum();
+  // Isolated automated-test fixtures only. Never use synthetic consent for real learners.
+  if (process.env.NODE_ENV === 'test') {
+    db.prepare("UPDATE students SET has_consent=1 WHERE id='stu-g2-001'").run();
+    db.prepare("UPDATE students SET has_consent=1 WHERE id='stu-g1-001'").run();
+  }
+
 }
