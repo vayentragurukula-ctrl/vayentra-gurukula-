@@ -142,19 +142,19 @@ export const AdmissionsPage: React.FC<Props> = ({ onBack, onLogin, onPricing, on
           <span className="vgpa-kicker">ADMISSIONS & ENROLLMENT · 2026–27</span>
           <h1>A better learning journey starts with true understanding.</h1>
           <p>
-            Join over 10,000 students experiencing concept-first coaching across Classes 1–10.
-            Enroll directly with the ₹599 Annual Foundation Pass or request a consultation.
+            Classes 1–2 are being prepared for a controlled foundational learning pilot. Other grades are under development.
+            Paid admissions are paused during security review; you may submit an enquiry.
           </p>
           <div className="vgpa-highlights">
-            <span><GraduationCap size={19} /> Classes 1–10 (CBSE & State)</span>
-            <span><BookOpen size={19} /> Complete Concept Library</span>
-            <span><ShieldCheck size={19} /> DPDP Act 2023 Compliant</span>
+            <span><GraduationCap size={19} /> Classes 1–2 Pilot (CBSE & State)</span>
+            <span><BookOpen size={19} /> Selected reviewed foundational modules</span>
+            <span><ShieldCheck size={19} /> Child-data safeguards under security review</span>
           </div>
 
           <div className="vgpa-note" style={{ background: '#f0fdf4', borderColor: '#bbf7d0', color: '#166534', marginTop: '24px' }}>
-            <strong>₹599 Annual Digital Learning Pass</strong>
+            <strong>Planned ₹599 Annual Digital Learning Pass — Not Yet On Sale</strong>
             <p style={{ margin: '6px 0 0 0', fontSize: '13px' }}>
-              Includes 365 days of full curriculum access, interactive visual activities, mastery tracking, and official GST tax invoice. Physical classroom tuition fees are separate.
+              Pilot content and terms will be published following release approval. No online paid enrolments are being accepted.
             </p>
           </div>
         </section>
@@ -172,7 +172,7 @@ export const AdmissionsPage: React.FC<Props> = ({ onBack, onLogin, onPricing, on
           }}>
             <button
               type="button"
-              onClick={() => { setActiveTab('instant_admission'); setError(''); }}
+              disabled={true} onClick={() => {}}
               style={{
                 padding: '10px 14px',
                 borderRadius: '8px',
@@ -189,7 +189,7 @@ export const AdmissionsPage: React.FC<Props> = ({ onBack, onLogin, onPricing, on
                 boxShadow: activeTab === 'instant_admission' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none'
               }}
             >
-              <CreditCard size={15} /> Instant Admission (₹599)
+              <CreditCard size={15} /> Paid Admission Paused
             </button>
             <button
               type="button"
@@ -220,7 +220,7 @@ export const AdmissionsPage: React.FC<Props> = ({ onBack, onLogin, onPricing, on
                 <span style={{ color: '#0d9488', fontWeight: 700, fontSize: '11px', textTransform: 'uppercase' }}>
                   PARENT-LED ONLINE ADMISSION
                 </span>
-                <h2 id="vgpa-title">Student Admission & ₹599 Subscription</h2>
+                <h2 id="vgpa-title">Foundational Pilot Enquiry</h2>
                 <p>Register student details and proceed directly to secure test-mode Razorpay checkout.</p>
               </div>
 
