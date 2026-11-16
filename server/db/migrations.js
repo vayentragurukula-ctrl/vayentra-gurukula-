@@ -2052,6 +2052,29 @@ export function runMigrations() {
       console.log('[Vayentra Security] Migration 020 completed successfully.');
     }
 
+    // 021 — Versioned sessions and historical plaintext-PIN containment.
+    const applied021 = db.prepare("SELECT id FROM migrations WHERE name='021_p0_session_revocation_and_legacy_pin_containment'").get();
+    if (!applied021) {
+      const cols = db.prepare('PRAGMA table_info(users)').all().map(c => c.name);
+      if (!cols.includes('session_version')) {
+        db.prepare('ALTER TABLE users ADD COLUMN session_version INTEGER NOT NULL DEFAULT 0').run();
+      }
+      if (process.env.NODE_ENV !== 'test') {
+        // Never "rotate" an exposed PIN into a new unknown plaintext PIN.
+        // Disable legacy PINs until a verified guardian sets a fresh one.
+        const legacyGuardians = db.prepare("SELECT id,parent_pin FROM guardians WHERE parent_pin NOT LIKE '$2%'").all();
+        for (const g of legacyGuardians) {
+          db.prepare("UPDATE guardians SET parent_pin='DISABLED_UNSET_PIN' WHERE id=?").run(g.id);
+        }
+        const legacyStudents = db.prepare("SELECT id,child_pin FROM students WHERE child_pin NOT LIKE '$2%'").all();
+        for (const student of legacyStudents) {
+          db.prepare("UPDATE students SET child_pin='DISABLED_UNSET_PIN' WHERE id=?").run(student.id);
+        }
+      }
+      db.prepare("INSERT INTO migrations(name) VALUES('021_p0_session_revocation_and_legacy_pin_containment')").run();
+      console.log('[Vayentra Security] Migration 021 completed.');
+    }
+
     db.exec('COMMIT;');
   } catch (err) {
     db.exec('ROLLBACK;');
