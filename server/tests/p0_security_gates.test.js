@@ -10,7 +10,7 @@ test('P0 release gates: paid admissions and orders fail closed outside test', as
   const base = 'http://127.0.0.1:' + server.address().port;
   try {
     process.env.NODE_ENV = 'development';
-    for (const endpoint of ['/api/v1/admissions/apply', '/api/v1/payments/orders']) {
+    for (const endpoint of ['/api/v1/admissions/apply', '/api/v1/payments/orders', '/api/v1/payments/verify', '/api/v1/payments/webhook']) {
       const response = await fetch(base + endpoint, {
         method:'POST', headers:{'Content-Type':'application/json'},
         body:JSON.stringify({})
