@@ -45,7 +45,8 @@ function validateApplication(body){
  return {name,grade,board,year,key};
 }
 function studentLearning(studentId){
- const s=db.prepare('SELECT id,name,enrollment_number FROM students WHERE id=?').get(studentId);
+ const s=db.prepare('SELECT id,name,enrollment_number,has_consent FROM students WHERE id=?').get(studentId);
+ if(s && s.has_consent!==1)return null;
  const m=db.prepare('SELECT * FROM one_memberships WHERE student_id=?').get(studentId);
  const y=db.prepare("SELECT * FROM one_academic_years WHERE student_id=? AND status='active'").get(studentId);
  if(!s||!m||m.membership_status!=='active'||!y)return null;
