@@ -142,6 +142,10 @@ export function seedAndPublishClasses3To10Curriculum(targetDb) {
         guardian_id='par-001', notice_version='v2026.1', verification_method='verified_parent_records'
     `).run();
 
+    // Synthetic test fixtures only: explicit consent for test-owned learner records.
+    if (process.env.NODE_ENV === 'test') {
+      db.prepare("UPDATE students SET has_consent=1 WHERE id='stu-g10-001'").run();
+    }
     db.exec('COMMIT');
     console.log('[Classes 3-10 Publisher] Successfully published curriculum and activated Class 7 and Class 10 learners.');
     return { success: true };
