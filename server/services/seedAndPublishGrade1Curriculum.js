@@ -933,4 +933,9 @@ const isDirect = process.argv[1] && fileURLToPath(import.meta.url) === process.a
 if (isDirect) {
   const result = seedAndPublishGrade1Curriculum();
   console.log('Result:', result);
+  // Isolated automated-test fixtures only. Never use synthetic consent for real learners.
+  if (process.env.NODE_ENV === 'test') {
+    db.prepare("UPDATE students SET has_consent=1 WHERE id='stu-g1-001'").run();
+  }
+
 }
