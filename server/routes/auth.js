@@ -126,6 +126,9 @@ authRouter.post('/logout', (req, res) => {
     const token = authHeader.split(' ')[1];
     try {
       const decoded = jwt.verify(token, JWT_SECRET);
+      // Logout invalidates previously issued access tokens for this user.
+      // This currently signs out all devices; targeted session revocation can follow.
+      db.prepare('UPDATE users SET session_version = session_version + 1 WHERE id = ?').run(decoded.userId);
       db.prepare(`
         INSERT INTO audit_logs (id, actor, action, entity, ip, details_json)
         VALUES (?, ?, 'USER_LOGOUT', 'User', ?, ?)
