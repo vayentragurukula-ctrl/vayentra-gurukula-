@@ -29,13 +29,24 @@ export function authenticateToken(req, res, next) {
 
   try {
     const decoded = jwt.verify(token, JWT_SECRET);
-    const user = db.prepare('SELECT id, email, name, role, avatar FROM users WHERE id = ?').get(decoded.userId);
+    const user = db.prepare('SELECT id, email, name, role, avatar, must_reset_password, session_version FROM users WHERE id = ?').get(decoded.userId);
 
     if (!user) {
       return res.status(401).json({
         code: 'USER_NOT_FOUND',
         message: 'The authenticated user session belongs to an account that no longer exists.'
       });
+    }
+
+    // Revoke all older access tokens after any verified credential reset.
+    // JWTs minted before session-version introduction remain valid only for version 0.
+    if (decoded.sessionVersion !== undefined
+      ? decoded.sessionVersion !== user.session_version
+      : user.session_version !== 0) {
+      return res.status(401).json({code:'SESSION_REVOKED',message:'Please sign in again.'});
+    }
+    if (user.must_reset_password === 1) {
+      return res.status(403).json({code:'PASSWORD_RESET_REQUIRED',message:'Credential reset required before account access.'});
     }
 
     // Attach contextual profile records
