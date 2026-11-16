@@ -176,7 +176,7 @@ oneOnboardingRouter.post('/guardian/learners/:studentId/withdraw-consent',requir
    if(!student)return {notOwned:true};
    if(student.has_consent===0)return {already:true};
    db.prepare("UPDATE students SET has_consent=0 WHERE id=? AND guardian_id=?").run(studentId,guardianId);
-   db.prepare("UPDATE one_memberships SET entitlement_status='suspended',updated_at=datetime('now') WHERE student_id=? AND guardian_id=?").run(studentId,guardianId);
+   db.prepare("UPDATE one_memberships SET entitlement_status='not_configured',updated_at=datetime('now') WHERE student_id=? AND guardian_id=?").run(studentId,guardianId);
    db.prepare("UPDATE consent_records SET is_revoked=1 WHERE student_id=? AND guardian_id=?").run(studentId,guardianId);
    db.prepare(`INSERT INTO one_journey_audit (id,actor_user_id,student_id,action,detail_code)
      VALUES (?,?,?,'GUARDIAN_CONSENT_WITHDRAWN','LEARNER_ACCESS_SUSPENDED_ERASURE_REVIEW_REQUIRED')`
