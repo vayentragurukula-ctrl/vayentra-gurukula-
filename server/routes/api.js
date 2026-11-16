@@ -606,59 +606,15 @@ apiRouter.get('/plans', (req, res) => {
   }
 });
 
-apiRouter.post('/checkout', authenticateToken, requireRole(['parent', 'admin']), (req, res) => {
-  const { planId = 'plan-annual-pro' } = req.body;
-  const guardianId = req.user.guardianId || req.body.guardianId || 'par-001';
-  try {
-    const plan = db.prepare('SELECT * FROM plans WHERE id = ?').get(planId);
-    const orderId = `order_${Date.now()}`;
-    res.json({
-      success: true,
-      orderId,
-      amountPaise: (plan ? plan.price_inr : 4999) * 100,
-      currency: 'INR',
-      planName: plan ? plan.name : 'Annual Gurukula Pro',
-      keyId: 'rzp_live_vayentra_gurukula_gateway'
-    });
-  } catch (err) {
-    res.status(500).json({ code: 'SERVER_ERROR', message: 'Checkout initialization failed.' });
-  }
+// P0: The legacy checkout simulator and unauthenticated-gateway-verification
+// shortcut have been retired. Only server/routes/payments.js may handle real
+// gateway flows after independent review and release-gate approval.
+apiRouter.post('/checkout', authenticateToken, requireRole(['parent', 'admin']), (_req, res) => {
+  return res.status(410).json({ code: 'LEGACY_CHECKOUT_RETIRED', message: 'This checkout endpoint is retired.' });
 });
 
-apiRouter.post('/webhook/payment', authenticateToken, requireRole(['parent', 'admin']), (req, res) => {
-  const guardianId = req.user.guardianId || req.body.guardianId || 'par-001';
-  const { paymentId = `pay_${Date.now()}`, orderId = `ord_${Date.now()}`, planId = 'plan-annual-pro' } = req.body;
-
-  try {
-    const invoiceNumber = `VG-INV-2026-${Math.floor(1000 + Math.random() * 9000)}`;
-    const plan = db.prepare('SELECT * FROM plans WHERE id = ?').get(planId);
-    const amount = plan ? plan.price_inr : 4999;
-    const gst = Math.round(amount * 0.18);
-
-    db.prepare(`
-      INSERT INTO payments (id, guardian_id, plan_id, amount_inr, gst_inr, status, order_id, payment_id, invoice_number)
-      VALUES (?, ?, ?, ?, ?, 'Captured', ?, ?, ?)
-    `).run(`payrec-${Date.now()}`, guardianId, planId, amount, gst, orderId, paymentId, invoiceNumber);
-
-    // Update guardian subscription status & clear dues
-    db.prepare(`
-      UPDATE guardians
-      SET subscription_status = 'Active', outstanding_fee = 0.0, renewal_date = '2027-10-15'
-      WHERE id = ?
-    `).run(guardianId);
-
-    res.json({
-      success: true,
-      paymentId,
-      invoiceNumber,
-      amountInr: amount,
-      gstInr: gst,
-      entitlementsActive: true
-    });
-  } catch (err) {
-    console.error('[Payment Webhook Error]:', err);
-    res.status(500).json({ code: 'SERVER_ERROR', message: 'Payment settlement failed.' });
-  }
+apiRouter.post('/webhook/payment', authenticateToken, requireRole(['parent', 'admin']), (_req, res) => {
+  return res.status(410).json({ code: 'LEGACY_WEBHOOK_RETIRED', message: 'This payment simulation endpoint is retired.' });
 });
 
 // ==========================================
