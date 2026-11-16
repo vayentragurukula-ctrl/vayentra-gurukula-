@@ -1,4 +1,5 @@
 import { DatabaseSync } from 'node:sqlite';
+import bcrypt from 'bcryptjs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { runMigrations } from './migrations.js';
@@ -360,7 +361,7 @@ function seedInitialData() {
   insertGuardian.run(
     'par-001',
     'usr-guardian-01',
-    '1234',
+    bcrypt.hashSync('1234', 10), // isolated legacy test fixture only; never a production default
     'Active',
     'Annual Gurukula Pro + AI Tutor',
     '2027-04-10',
